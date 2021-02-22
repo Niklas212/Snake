@@ -1,22 +1,23 @@
 module main
 
 import rand
+import eventbus
 
 struct V2 {
 	x	int
 	y	int
 }
 
-enum Direction {
+pub enum Direction {
 	left
 	right
 	top
 	down
 }
 
-type Placeholder = fn ()
+type Placeholder = fn (voidptr)
 
-type Position = V2 | Direction
+pub type Position = V2 | Direction
 
 pub struct Map {
 	width	int = 10
@@ -35,8 +36,9 @@ pub struct Snake {
 	orientation	V2	= V2{1, 0}
 	body []V2 = [{x:2, y:0}, {x:1, y:0}, V2{x:0, y:0}]
 	growing		bool
-	on_dead		Placeholder = fn(){println("Hallo")}
-	on_grow		Placeholder = fn(){println("Food")}
+	data		voidptr
+	on_dead		Placeholder
+	on_grow		Placeholder
 	field		Map
 }
 
@@ -45,31 +47,33 @@ pub fn (mut sn Snake) grow () {
 }
 
 pub fn (mut sn Snake) move () {
+	//println("start")
 	if sn.growing {
 		sn.body << sn.body[sn.body.len - 1]
 	}
 
-	for i := sn.body.len - 1; i > 1 - 1; i-- {
+	for i := sn.body.len - 1; i > 0; i-- {
 		sn.body[i] = sn.body[i - 1]
 	}
-	
+		
 	sn.body[0] = sn.body[0] + sn.orientation
 
-	if sn.body[0] < {x:0, y:0} || sn.body[0] > {x:sn.field.width, y:sn.field.height} {
-		sn.on_dead()
+	if sn.body[0] < {x:0, y:0} || sn.body[0] > {x:sn.field.width - 1, y:sn.field.height - 1} {
+		sn.on_dead(sn.data)
 	}
 
 	if sn.body[0] in sn.body[1..] {
-		sn.on_dead()
+		sn.on_dead(sn.data)
 	}
+
 	if sn.body[0] == sn.field.food {
 			sn.growing = true
-			sn.on_grow()
+			sn.on_grow(sn.data)
 			sn.field.set_food_random(sn)
 		} else {
 			sn.growing = false
 			}
-
+	//println("end")
 }
 
 fn (a V2) + (b V2) V2 {
@@ -111,8 +115,8 @@ pub fn (sn Snake) get_map () [][]int {
 
 	
 	ret[sn.field.food.y][sn.field.food.x] = 3
-
-	for b in sn.body {
+	
+	for b in sn.body[1..] {
 		ret[b.y][b.x] = 2
 	}
 
