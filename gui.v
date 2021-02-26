@@ -1,9 +1,12 @@
 module main
 
-import ui
+//import ui
 import gg
 import gx
 import time
+import os
+import sokol.sapp
+import math
 
 const (
 	win_width  = 800
@@ -11,7 +14,10 @@ const (
 	grid_width = 20
 	grid_height = 15
 	margin_top = 20
-	color	= [gx.green, gx.black, gx.blue, gx.red]
+	head_col = gx.black
+	body_col = gx.blue
+	food_col = gx.red
+	bgcolor = [gx.green, gx.yellow]
 	//moves per second
 	mps = 6
 )
@@ -19,11 +25,11 @@ const (
 struct App {
 mut:
 	score	int
-	//label	&ui.TextBox = 0
 	snake	Snake = Snake{}
-	window  &ui.Window = 0
+	gg 	&gg.Context = 0
 	size	int	= 40
-	gameover bool	= false
+	margin_left	int
+	gameover bool
 	grid	[][]int
 }
 
@@ -41,30 +47,51 @@ fn main() {
 			}
 
 		}
-	mut p:=""
-	/*app.label=ui.textbox({
-		text: &p
-		read_only: true
-	})*/
+
+
+	mut font_path := os.resource_abs_path(os.join_path('..', 'assets', 'fonts', 'RobotoMono-Regular.ttf'))
+	$if android {
+		font_path = 'fonts/RobotoMono-Regular.ttf'
+	}
+	
 	app.snake.data = app
-	app.window = ui.window({
+	app.gg = gg.new_context({
 		width: win_width
 		height: win_height
-		title: 'Snake'
-		state: app
-		on_key_down: key_press
-	}, [
-		ui.canvas({
-			draw_fn : draw_grid
-		})
-	])
+		window_title: 'Snake'
+		user_data: app
+		use_ortho: true
+		keydown_fn: key_press
+		create_window: true
+		frame_fn: frame
+		bg_color: gx.white
+		font_path: font_path
+		event_fn: event
+		//sample_count: 8
+	})
 	
 	go app.game()
-	ui.run(app.window)
+	app.gg.run()
 }
 
-fn draw_grid (gg &gg.Context, mut app &App, can &ui.Canvas) {
-	
+fn event(e &sapp.Event, mut app App) {
+	match e.typ {
+		.resized, .restored, .resumed {
+			handle_size(mut app)
+		}
+		else {}
+	}
+}
+
+fn frame(app &App) {
+	app.gg.begin()
+	draw_grid(app)
+	app.gg.end()
+}
+
+fn draw_grid (app &App) {
+	//text
+	gg:=app.gg
 	if app.gameover {
 		gg.draw_text(4, 4, "Game Over, press Space, your score:$app.score", 
 			gx.TextCfg{
@@ -81,19 +108,22 @@ fn draw_grid (gg &gg.Context, mut app &App, can &ui.Canvas) {
 			}
 		)
 	}
-	
-	m:=app.grid
+	//grid
 	for x in 0..app.snake.field.width {
 		for y in 0..app.snake.field.height {
-			gg.draw_rect(x * app.size, y * app.size + margin_top, app.size, app.size, color[m[y][x]])
+			gg.draw_rect(x * app.size + app.margin_left, y * app.size + margin_top, app.size, app.size, bgcolor[(x + y) % 2])
 		}
 	}
+	//head
+	gg.draw_rect(app.snake.body[0].x * app.size + app.margin_left, app.snake.body[0].y * app.size + margin_top, app.size, app.size, head_col)
+	//body
+	for b in app.snake.body[1..] {
+		gg.draw_rect(b.x * app.size + app.margin_left, b.y * app.size + margin_top, app.size, app.size, body_col)
+	}
+	//food
+	gg.draw_circle(int(app.snake.field.food.x * app.size + app.size / 2 + app.margin_left), int(app.snake.field.food.y * app.size + margin_top + app.size / 2), app.size / 2, food_col)
 }
-/*
-fn (mut app App) set_gameover() {
-	app.gameover = true
-}
-*/
+
 fn on_dead(mut app App) {
 	app.gameover = true
 }
@@ -102,23 +132,21 @@ fn on_grow(mut app App) {
 	app.score ++
 }
 
-fn key_press(e ui.KeyEvent, mut app App) {
+fn key_press(e sapp.KeyCode, m sapp.Modifier, mut app App) {
 	
-		if int(e.key) == 32 {
+		if int(e) == 32 {
 			space_pressed(mut app)
 		} else {
 		app.snake.set_orientation((
-		match int(e.key){
-			//32	{space_pressed(mut app)}
-			263	{Direction.left}
-			262	{Direction.right}
-			265	{Direction.top}
-			264	{Direction.down}
-			else	{Direction.right}
+		match int(e){
+			263, 65	{Position(Direction.left)}
+			262, 68	{Position(Direction.right)}
+			265, 87	{Position(Direction.top)}
+			264, 83	{Position(Direction.down)}
+			else	{Position(app.snake.orientation)}
 		}
 	))
 	}
-	app.window.refresh()
 }
 
 fn space_pressed(mut app App){
@@ -133,18 +161,17 @@ fn space_pressed(mut app App){
 }
 
 fn (mut app App) game() {
-	//println("start")
 	for !app.gameover {
-		//println("1")
 		app.snake.move()
-		if !app.gameover {
-			//println("2")
-			app.grid = app.snake.get_map()
-			app.window.refresh()
-		}
 		time.sleep_ms(1000/ mps)
 	}
-	//println("stop")
-	//println(app.snake)
+}
+
+fn handle_size(mut app App) {
+	width, height := sapp.width(), sapp.height()
+	mw:= width / grid_width
+	mh:= (height - margin_top) / grid_height
+	app.size = if mw > mh {mh} else {mw}
+	app.margin_left = (width - app.size * grid_width) / 2
 }
 

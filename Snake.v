@@ -1,9 +1,8 @@
 module main
 
 import rand
-import eventbus
 
-struct V2 {
+pub struct V2 {
 	x	int
 	y	int
 }
@@ -47,33 +46,33 @@ pub fn (mut sn Snake) grow () {
 }
 
 pub fn (mut sn Snake) move () {
-	//println("start")
-	if sn.growing {
-		sn.body << sn.body[sn.body.len - 1]
-	}
 
-	for i := sn.body.len - 1; i > 0; i-- {
-		sn.body[i] = sn.body[i - 1]
-	}
+	head:= sn.body[0] + sn.orientation
+	
+	if head < {x:0, y:0} || head > {x:sn.field.width - 1, y:sn.field.height - 1} {
+		sn.on_dead(sn.data)
+	} else if head in sn.body[1..] {
+		sn.on_dead(sn.data)
+	} else {
+	
+		if sn.growing {
+			sn.body << sn.body[sn.body.len - 1]
+		}
+	
+		for i := sn.body.len - 1; i > 0; i-- {
+			sn.body[i] = sn.body[i - 1]
+		}
 		
-	sn.body[0] = sn.body[0] + sn.orientation
+		sn.body[0] = head
 
-	if sn.body[0] < {x:0, y:0} || sn.body[0] > {x:sn.field.width - 1, y:sn.field.height - 1} {
-		sn.on_dead(sn.data)
+		if sn.body[0] == sn.field.food {
+				sn.growing = true
+				sn.on_grow(sn.data)
+				sn.field.set_food_random(sn)
+			} else {
+				sn.growing = false
+				}
 	}
-
-	if sn.body[0] in sn.body[1..] {
-		sn.on_dead(sn.data)
-	}
-
-	if sn.body[0] == sn.field.food {
-			sn.growing = true
-			sn.on_grow(sn.data)
-			sn.field.set_food_random(sn)
-		} else {
-			sn.growing = false
-			}
-	//println("end")
 }
 
 fn (a V2) + (b V2) V2 {
@@ -105,7 +104,7 @@ pub fn (mut sn Snake) set_orientation(p Position) {
 		}
 	}
 }
-
+/*
 pub fn (sn Snake) get_map () [][]int {
 	// nothing	0
 	// head		1
@@ -124,4 +123,4 @@ pub fn (sn Snake) get_map () [][]int {
 
 	return ret
 }
-
+*/
