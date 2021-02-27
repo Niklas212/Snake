@@ -79,6 +79,10 @@ fn (a V2) + (b V2) V2 {
 	return V2{a.x + b.x, a.y + b.y}
 }
 
+fn (a V2) - (b V2) V2 {
+	return V2{a.x - b.x, a.y - b.y}
+}
+
 fn (a V2) == (b V2) bool {
 	return a.x == b.x && a.y == b.y
 }
@@ -86,6 +90,16 @@ fn (a V2) == (b V2) bool {
 fn (a V2) < (b V2) bool {
 	return a.x < b.x || a.y < b.y
 }
+
+fn (a V2) mul (b int) V2 {
+	return V2{x:a.x * b, y:a.y * b}
+}
+
+fn min_max(a V2, b V2) (V2, V2) {
+	return V2{x:(int(a.x <= b.x) * a.x) + (int(b.x < a.x) * b.x) , y:(int(a.y <= b.y) * a.y) + (int(b.y < a.y) * b.y) }, V2{x:(int(a.x >= b.x) * a.x) + (int(b.x > a.x) * b.x) , y:(int(a.y >= b.y) * a.y) + (int(b.y > a.y) * b.y) }
+}
+
+
 /*
 fn (a V2) > (b V2) bool {
 	return a.x > b.x || a.y > b.y

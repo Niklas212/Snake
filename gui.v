@@ -6,7 +6,7 @@ import gx
 import time
 import os
 import sokol.sapp
-import math
+//import math
 
 const (
 	win_width  = 800
@@ -20,6 +20,11 @@ const (
 	bgcolor = [gx.green, gx.yellow]
 	//moves per second
 	mps = 6
+	
+	rounded = 8
+	snake_perc = 0.8
+	snake_perc_to_top = (1 - snake_perc) / 2
+	snake_perc_to_left = 1 - snake_perc_to_top
 )
 
 struct App {
@@ -29,8 +34,36 @@ mut:
 	gg 	&gg.Context = 0
 	size	int	= 40
 	margin_left	int
+	time	time.StopWatch
 	gameover bool
+	//fps	int = 60 // only related to animation
+	//animation_progress	f32 = 0.0
 	grid	[][]int
+}
+
+struct F2 {
+	x	f32
+	y	f32
+}
+
+fn f2_ (a V2) F2 {
+	return F2 {f32(a.x), f32(a.y)}
+}
+
+fn (a F2) + (b F2) F2 {
+	return F2{a.x + b.x, a.y + a.y}
+}
+
+fn min_max_f (a F2, b F2, c F2, d F2) (F2, F2) {
+	return F2{ int(a.x<=b.x && a.x<=c.x && a.x<= d.x) * a.x + int(b.x<a.x && b.x<=c.x && b.x<= d.x) * b.x + int(c.x<b.x && c.x<a.x && c.x<= d.x) * c.x + int(d.x<b.x && d.x<c.x && d.x< a.x) * d.x, int(a.y<=b.y && a.y<=c.y && a.y<= d.y) * a.y + int(b.y<a.y && b.y<=c.y && b.y<= d.y) * b.y + int(c.y<b.y && c.y<a.y && c.y<= d.y) * c.y + int(d.y<b.y && d.y<c.y && d.y< a.y) * d.y}, F2{ int(a.x>=b.x && a.x>=c.x && a.x>= d.x) * a.x + int(b.x>a.x && b.x>=c.x && b.x>= d.x) * b.x + int(c.x>b.x && c.x>a.x && c.x>= d.x) * c.x + int(d.x>b.x && d.x>c.x && d.x> a.x) * d.x, int(a.y>=b.y && a.y>=c.y && a.y>= d.y) * a.y + int(b.y>a.y && b.y>=c.y && b.y>= d.y) * b.y + int(c.y>b.y && c.y>a.y && c.y>= d.y) * c.y + int(d.y>b.y && d.y>c.y && d.y> a.y) * d.y }
+}
+
+fn (a F2) mul(b int) (V2) {
+	return V2{int(a.x * b), int(a.y * b)}
+}
+
+fn (a F2) mul_f(b f32) (F2) {
+	return F2{int(a.x * b), int(a.y * b)}
 }
 
 fn main() {
@@ -45,7 +78,7 @@ fn main() {
 			on_dead: on_dead
 			on_grow: on_grow
 			}
-
+		time: time.new_stopwatch({})
 		}
 
 
@@ -69,7 +102,7 @@ fn main() {
 		event_fn: event
 		//sample_count: 8
 	})
-	
+
 	go app.game()
 	app.gg.run()
 }
@@ -83,7 +116,9 @@ fn event(e &sapp.Event, mut app App) {
 	}
 }
 
-fn frame(app &App) {
+fn frame(mut app App) {
+	app.time.restart()
+	//println(1_000_000_000 / app.time.elapsed()) /* shows fps */
 	app.gg.begin()
 	draw_grid(app)
 	app.gg.end()
@@ -114,12 +149,27 @@ fn draw_grid (app &App) {
 			gg.draw_rect(x * app.size + app.margin_left, y * app.size + margin_top, app.size, app.size, bgcolor[(x + y) % 2])
 		}
 	}
+	
+	
+	//body
+	mut last:=app.snake.body[0]
+	for part in app.snake.body[1..app.snake.body.len ] {
+
+		p1:=F2{f32(last.x) + snake_perc_to_top, f32(last.y) + snake_perc_to_top}
+		p2:=F2{f32(last.x) + snake_perc_to_left, f32(last.y) + snake_perc_to_left}
+		p3:=F2{f32(part.x) + snake_perc_to_top, f32(part.y) + snake_perc_to_top}
+		p4:=F2{f32(part.x) + snake_perc_to_left, f32(part.y) + snake_perc_to_left}
+		x, y:= min_max_f(p1, p2, p3, p4)
+
+		draw_rect_by_points(gg, x.mul(app.size) + V2{app.margin_left, margin_top}, y.mul(app.size) + V2{app.margin_left, margin_top}, body_col)
+		last=part
+	}
+	
+	
 	//head
 	gg.draw_rect(app.snake.body[0].x * app.size + app.margin_left, app.snake.body[0].y * app.size + margin_top, app.size, app.size, head_col)
-	//body
-	for b in app.snake.body[1..] {
-		gg.draw_rect(b.x * app.size + app.margin_left, b.y * app.size + margin_top, app.size, app.size, body_col)
-	}
+	
+	
 	//food
 	gg.draw_circle(int(app.snake.field.food.x * app.size + app.size / 2 + app.margin_left), int(app.snake.field.food.y * app.size + margin_top + app.size / 2), app.size / 2, food_col)
 }
@@ -163,15 +213,32 @@ fn space_pressed(mut app App){
 fn (mut app App) game() {
 	for !app.gameover {
 		app.snake.move()
+		//go app.animate()
 		time.sleep_ms(1000/ mps)
+		
+		//app.animation_progress = -1.0
 	}
 }
-
+/*
+fn (mut app App) animate() {
+	app.animation_progress = 0.0
+	for app.animation_progress >= 0.0 && app.animation_progress < 0.99{
+		println(app.animation_progress)
+		app.animation_progress += 1.0 / f32(app.fps) * mps
+		time.sleep_ms(1_000 / app.fps)
+	}
+	println("ja")
+}
+*/
 fn handle_size(mut app App) {
 	width, height := sapp.width(), sapp.height()
 	mw:= width / grid_width
 	mh:= (height - margin_top) / grid_height
 	app.size = if mw > mh {mh} else {mw}
 	app.margin_left = (width - app.size * grid_width) / 2
+}
+
+fn draw_rect_by_points (gg &gg.Context, left_top V2, right_bottom V2, color gx.Color) {
+	gg.draw_rounded_rect(left_top.x, left_top.y, (right_bottom.x - left_top.x) / 2, (right_bottom.y - left_top.y) / 2, rounded, color)
 }
 
