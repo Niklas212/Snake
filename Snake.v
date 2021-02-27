@@ -26,8 +26,25 @@ pub struct Map {
 }
 
 pub fn (mut m Map) set_food_random (sn Snake) {
-		m.food = V2{x: rand.intn(m.width - 1),  y: rand.intn(m.height - 1)}
-		if m.food in sn.body {m.set_food_random(sn)}
+		/*m.food = V2{x: rand.intn(m.width - 1),  y: rand.intn(m.height - 1)}
+		if m.food in sn.body {m.set_food_random(sn)}*/
+		position:=rand.intn(m.width * m.height - sn.body.len)
+		mut counter:=0
+		outer: for x in 0..m.width {
+			 for y in 0..m.height {
+				p:=V2{x, y}
+				if !( p in sn.body)  {
+					if counter == position {
+						m.food = V2{x, y}
+						break outer
+						break
+					}
+					else {
+						counter++
+					}
+					}
+			}
+		}
 }
 
 pub struct Snake {
