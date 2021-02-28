@@ -17,7 +17,7 @@ const (
 	head_col = gx.black
 	body_col = gx.blue
 	food_col = gx.red
-	bgcolor = [gx.green, gx.yellow]
+	bgcolor = [gx.rgb(162, 209, 73), gx.rgb(170, 215, 81)]
 	//moves per second
 	mps = 6
 	
@@ -107,7 +107,7 @@ fn main() {
 	app.gg.run()
 }
 
-fn event(e &sapp.Event, mut app App) {
+fn event(e &gg.Event, mut app App) {
 	match e.typ {
 		.resized, .restored, .resumed {
 			handle_size(mut app)
@@ -182,7 +182,7 @@ fn on_grow(mut app App) {
 	app.score ++
 }
 
-fn key_press(e sapp.KeyCode, m sapp.Modifier, mut app App) {
+fn key_press(e gg.KeyCode, m gg.Modifier, mut app App) {
 	
 		if int(e) == 32 {
 			space_pressed(mut app)
