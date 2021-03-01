@@ -20,6 +20,7 @@ const (
 	bgcolor = [gx.rgb(162, 209, 73), gx.rgb(170, 215, 81)]
 	//moves per second
 	mps = 6
+	fps = 60
 	
 	rounded = 8
 	snake_perc = 0.8
@@ -37,7 +38,7 @@ mut:
 	time	time.StopWatch
 	gameover bool
 	//fps	int = 60 // only related to animation
-	//animation_progress	f32 = 0.0
+	animation_progress	f32 = 0.0
 	grid	[][]int
 }
 
@@ -117,7 +118,8 @@ fn event(e &gg.Event, mut app App) {
 }
 
 fn frame(mut app App) {
-	app.time.restart()
+	//app.time.restart()
+	
 	//println(1_000_000_000 / app.time.elapsed()) /* shows fps */
 	app.gg.begin()
 	draw_grid(app)
@@ -128,7 +130,7 @@ fn draw_grid (app &App) {
 	//text
 	gg:=app.gg
 	if app.gameover {
-		gg.draw_text(4, 4, "Game Over, press Space, your score:$app.score, $app.size",
+		gg.draw_text(4, 4, "Game Over, press Space, your score:$app.score",
 			gx.TextCfg{
 				color: gx.red
 				align: gx.align_left
@@ -136,7 +138,7 @@ fn draw_grid (app &App) {
 		)
 	}
 	else {
-		gg.draw_text(4, 4, "$app.score, $app.size", 
+		gg.draw_text(4, 4, "$app.score", 
 			gx.TextCfg{
 				color: gx.black
 				align: gx.align_left
@@ -214,8 +216,12 @@ fn (mut app App) game() {
 	for !app.gameover {
 		app.snake.move()
 		//go app.animate()
-		time.sleep_ms(1000/ mps)
-		
+		//time.sleep_ms(1000/ mps)
+		app.animation_progress = 0
+		for i in 0..fps/mps {
+			app.animation_progress += 1 / fps * mps 
+			time.sleep_ms(1000 / fps)
+		}
 		//app.animation_progress = -1.0
 	}
 }
