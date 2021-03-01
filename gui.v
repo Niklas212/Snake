@@ -108,12 +108,12 @@ fn main() {
 }
 
 fn event(e &gg.Event, mut app App) {
-	match e.typ {
-		.resized, .restored, .resumed {
-			handle_size(mut app)
+			match e.typ {
+			.resized, .restored, .resumed {
+				handle_size(mut app)
+			}
+			else {}
 		}
-		else {}
-	}
 }
 
 fn frame(mut app App) {
@@ -128,7 +128,7 @@ fn draw_grid (app &App) {
 	//text
 	gg:=app.gg
 	if app.gameover {
-		gg.draw_text(4, 4, "Game Over, press Space, your score:$app.score", 
+		gg.draw_text(4, 4, "Game Over, press Space, your score:$app.score, $app.size",
 			gx.TextCfg{
 				color: gx.red
 				align: gx.align_left
@@ -136,7 +136,7 @@ fn draw_grid (app &App) {
 		)
 	}
 	else {
-		gg.draw_text(4, 4, "$app.score", 
+		gg.draw_text(4, 4, "$app.score, $app.size", 
 			gx.TextCfg{
 				color: gx.black
 				align: gx.align_left
@@ -231,7 +231,12 @@ fn (mut app App) animate() {
 }
 */
 fn handle_size(mut app App) {
-	width, height := sapp.width(), sapp.height()
+	//size:=gg.screen_size()
+	mut width, mut height := sapp.width(), sapp.height()
+	if sapp.dpi_scale() != 0.0 && sapp.dpi_scale() != 1.0 {
+		width = int(f32(width) / sapp.dpi_scale())
+		height = int(f32(height) / sapp.dpi_scale())
+	}
 	mw:= width / grid_width
 	mh:= (height - margin_top) / grid_height
 	app.size = if mw > mh {mh} else {mw}
