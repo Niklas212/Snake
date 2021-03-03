@@ -19,7 +19,7 @@ const (
 	food_col = gx.red
 	bgcolor = [gx.rgb(162, 209, 73), gx.rgb(170, 215, 81)]
 	//moves per second
-	mps = 2
+	mps = 6
 	fps = 60
 	
 	rounded = 8
