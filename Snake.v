@@ -73,8 +73,18 @@ pub fn (mut sn Snake) move () {
 		sn.on_dead(sn.data)
 	} else if head in sn.body[1..] {
 		sn.on_dead(sn.data)
+		//sn.last_orientation = V2{0, 0}
 	} else {
 	
+		if sn.body[0] == sn.field.food {
+				sn.growing = true
+				sn.on_grow(sn.data)
+				sn.field.set_food_random(sn)
+				sn.end_orientation = V2{0, 0}
+			} else {
+				sn.growing = false
+				}
+
 		if sn.growing {
 			sn.body << sn.body[sn.body.len - 1]
 		} else {
@@ -87,14 +97,7 @@ pub fn (mut sn Snake) move () {
 		
 		sn.body[0] = head
 
-		if sn.body[0] == sn.field.food {
-				sn.growing = true
-				sn.on_grow(sn.data)
-				sn.field.set_food_random(sn)
-				sn.end_orientation = V2{0, 0}
-			} else {
-				sn.growing = false
-				}
+		
 	}
 }
 
@@ -129,15 +132,19 @@ fn (a V2) > (b V2) bool {
 }
 */
 pub fn (mut sn Snake) set_orientation(p Position) {
+	mut p_in_v := V2{}
 	if p is V2 {
-		sn.orientation = p
+		p_in_v = p
 	}
 	else {
-		sn.orientation = match p as Direction {
+		p_in_v = match p as Direction {
 			.left {V2{-1, 0}}
 			.right {V2{1, 0}}
 			.top {V2{0, -1}}
 			.down {V2{0, 1}}
 		}
+	}
+	if ! (sn.last_orientation.x - p_in_v.x == 0 || sn.last_orientation.y - p_in_v.y == 0) {
+		sn.orientation = p_in_v
 	}
 }
