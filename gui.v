@@ -38,7 +38,7 @@ mut:
 	time	time.StopWatch
 	gameover bool
 	//fps	int = 60 // only related to animation
-	animation_progress	f32 = 0.0
+	animation_progress	int
 	grid	[][]int
 }
 
@@ -49,6 +49,10 @@ struct F2 {
 
 fn f2_ (a V2) F2 {
 	return F2 {f32(a.x), f32(a.y)}
+}
+
+fn v2_ (a F2) V2 {
+	return V2 {int(a.x), int(a.y)}
 }
 
 fn (a F2) + (b F2) F2 {
@@ -74,7 +78,7 @@ fn main() {
 			field: Map{
 				width : grid_width
 				height : grid_height
-				food : V2{x: 4, y: 4}
+				food : V2{x: 6, y: 0}
 			}
 			on_dead: on_dead
 			on_grow: on_grow
@@ -105,6 +109,7 @@ fn main() {
 	})
 
 	go app.game()
+	//go app.animate()
 	app.gg.run()
 }
 
@@ -127,6 +132,10 @@ fn frame(mut app App) {
 }
 
 fn draw_grid (app &App) {
+	
+		animation_progress:= f32(app.animation_progress / f32(fps) * f32(mps) )
+		head_position:=F2{f32(app.snake.last_orientation.x) * animation_progress + app.snake.body[1].x, f32(app.snake.last_orientation.y) * animation_progress + app.snake.body[1].y}
+	
 	//text
 	gg:=app.gg
 	if app.gameover {
@@ -154,8 +163,8 @@ fn draw_grid (app &App) {
 	
 	
 	//body
-	mut last:=app.snake.body[0]
-	for part in app.snake.body[1..app.snake.body.len ] {
+	mut last:=app.snake.body[1]
+	for part in app.snake.body[2..app.snake.body.len] {
 
 		p1:=F2{f32(last.x) + snake_perc_to_top, f32(last.y) + snake_perc_to_top}
 		p2:=F2{f32(last.x) + snake_perc_to_left, f32(last.y) + snake_perc_to_left}
@@ -166,14 +175,36 @@ fn draw_grid (app &App) {
 		draw_rect_by_points(gg, x.mul(app.size) + V2{app.margin_left, margin_top}, y.mul(app.size) + V2{app.margin_left, margin_top}, body_col)
 		last=part
 	}
-	
-	
-	//head
-	gg.draw_rect(app.snake.body[0].x * app.size + app.margin_left, app.snake.body[0].y * app.size + margin_top, app.size, app.size, head_col)
-	
-	
+
+	// last part
+	len := app.snake.body.len - 1
+	e:= app.snake.end_orientation
+	end_position := F2{f32(app.snake.body[len].x) - f32(e.x) * (1 - animation_progress), f32(app.snake.body[len].y) - f32(e.y) * (1 - animation_progress)}
+	last = app.snake.body[len]
+		mut p1:=F2{f32(last.x) + snake_perc_to_top, f32(last.y) + snake_perc_to_top}
+		mut p2:=F2{f32(last.x) + snake_perc_to_left, f32(last.y) + snake_perc_to_left}
+		mut p3:=F2{end_position.x + snake_perc_to_top, end_position.y + snake_perc_to_top}
+		mut p4:=F2{end_position.x + snake_perc_to_left, end_position.y + snake_perc_to_left}
+		mut x, mut y:= min_max_f(p1, p2, p3, p4)
+		draw_rect_by_points(gg, x.mul(app.size) + V2{app.margin_left, margin_top}, y.mul(app.size) + V2{app.margin_left, margin_top}, body_col)
+
+
+	// between head and 2nd part
+		
+		snd := app.snake.body[1]
+		p1=F2{f32(snd.x) + snake_perc_to_top, f32(snd.y) + snake_perc_to_top}
+		p2=F2{f32(snd.x) + snake_perc_to_left, f32(snd.y) + snake_perc_to_left}
+		p3=F2{head_position.x + snake_perc_to_top, head_position.y + snake_perc_to_top}
+		p4=F2{head_position.x + snake_perc_to_left, head_position.y + snake_perc_to_left}
+		x, y= min_max_f(p1, p2, p3, p4)
+		draw_rect_by_points(gg, x.mul(app.size) + V2{app.margin_left, margin_top}, y.mul(app.size) + V2{app.margin_left, margin_top}, body_col)	
+		
 	//food
 	gg.draw_circle(int(app.snake.field.food.x * app.size + app.size / 2 + app.margin_left), int(app.snake.field.food.y * app.size + margin_top + app.size / 2), app.size / 2, food_col)
+
+	//head
+	gg.draw_rect( head_position.x * f32(app.size) + f32(app.margin_left), head_position.y * f32(app.size) + f32(margin_top), app.size, app.size, head_col)
+
 }
 
 fn on_dead(mut app App) {
@@ -208,6 +239,7 @@ fn space_pressed(mut app App){
 		app.score = 0
 		app.gameover = false
 		app.snake.orientation = V2{x: 1, y:0}
+		app.animation_progress = 0
 		go app.game()
 	}
 }
@@ -215,27 +247,16 @@ fn space_pressed(mut app App){
 fn (mut app App) game() {
 	for !app.gameover {
 		app.snake.move()
-		//go app.animate()
-		//time.sleep_ms(1000/ mps)
-		app.animation_progress = 0
-		for i in 0..fps/mps {
-			app.animation_progress += 1 / fps * mps 
-			time.sleep_ms(1000 / fps)
+		if !app.gameover {
+			app.animation_progress = 0
+			for app.animation_progress < fps / mps {
+				app.animation_progress ++
+				time.sleep_ms(1000 / fps / mps)
 		}
-		//app.animation_progress = -1.0
+	}
 	}
 }
-/*
-fn (mut app App) animate() {
-	app.animation_progress = 0.0
-	for app.animation_progress >= 0.0 && app.animation_progress < 0.99{
-		println(app.animation_progress)
-		app.animation_progress += 1.0 / f32(app.fps) * mps
-		time.sleep_ms(1_000 / app.fps)
-	}
-	println("ja")
-}
-*/
+
 fn handle_size(mut app App) {
 	//size:=gg.screen_size()
 	mut width, mut height := sapp.width(), sapp.height()

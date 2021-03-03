@@ -50,8 +50,11 @@ pub fn (mut m Map) set_food_random (sn Snake) {
 pub struct Snake {
 	pub mut:
 	orientation	V2	= V2{1, 0}
+	last_orientation V2 = V2{1, 0}
+	end_orientation V2 = V2{1, 0}
 	body []V2 = [{x:2, y:0}, {x:1, y:0}, V2{x:0, y:0}]
 	growing		bool
+	//last_grow	bool
 	data		voidptr
 	on_dead		Placeholder
 	on_grow		Placeholder
@@ -63,7 +66,7 @@ pub fn (mut sn Snake) grow () {
 }
 
 pub fn (mut sn Snake) move () {
-
+	sn.last_orientation = sn.orientation
 	head:= sn.body[0] + sn.orientation
 	
 	if head < {x:0, y:0} || head > {x:sn.field.width - 1, y:sn.field.height - 1} {
@@ -74,6 +77,8 @@ pub fn (mut sn Snake) move () {
 	
 		if sn.growing {
 			sn.body << sn.body[sn.body.len - 1]
+		} else {
+				sn.end_orientation = sn.body[sn.body.len - 2] - sn.body[sn.body.len - 1]
 		}
 	
 		for i := sn.body.len - 1; i > 0; i-- {
@@ -86,6 +91,7 @@ pub fn (mut sn Snake) move () {
 				sn.growing = true
 				sn.on_grow(sn.data)
 				sn.field.set_food_random(sn)
+				sn.end_orientation = V2{0, 0}
 			} else {
 				sn.growing = false
 				}
@@ -135,23 +141,3 @@ pub fn (mut sn Snake) set_orientation(p Position) {
 		}
 	}
 }
-/*
-pub fn (sn Snake) get_map () [][]int {
-	// nothing	0
-	// head		1
-	// body		2
-	// food 	3
-	mut ret:= [][]int{len: sn.field.height, init: []int {len: sn.field.width}}
-
-	
-	ret[sn.field.food.y][sn.field.food.x] = 3
-	
-	for b in sn.body[1..] {
-		ret[b.y][b.x] = 2
-	}
-
-	ret[sn.body[0].y][sn.body[0].x] = 1
-
-	return ret
-}
-*/
