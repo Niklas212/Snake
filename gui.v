@@ -19,8 +19,8 @@ const (
 	food_col = gx.red
 	bgcolor = [gx.rgb(162, 209, 73), gx.rgb(170, 215, 81)]
 	//moves per second
-	mps = 10
-	fps = 120
+	mps = 9
+	animation_steps = 20
 	
 	rounded = 8
 	snake_perc = 0.8
@@ -44,7 +44,7 @@ mut:
 	gg 	&gg.Context = 0
 	size	int	= 40
 	margin_left	int
-	time	time.StopWatch
+	//time	time.StopWatch
 	gameover bool
 	//fps	int = 60 // only related to animation
 	animation_progress	int
@@ -93,7 +93,7 @@ fn main() {
 			on_dead: on_dead
 			on_grow: on_grow
 			}
-		time: time.new_stopwatch({})
+		//time: time.new_stopwatch({})
 		}
 
 
@@ -143,7 +143,7 @@ fn frame(mut app App) {
 
 fn draw_grid (app &App) {
 	
-		animation_progress:= f32(app.animation_progress / f32(fps) * f32(mps) )
+		animation_progress:= f32(app.animation_progress / f32(animation_steps) )
 		head_position:=F2{f32(app.snake.last_orientation.x) * animation_progress + app.snake.body[1].x, f32(app.snake.last_orientation.y) * animation_progress + app.snake.body[1].y}
 	
 	//text
@@ -247,11 +247,11 @@ fn space_pressed(mut app App){
 fn (mut app App) game() {
 	for !app.gameover {
 		app.snake.move()
-		if !app.gameover {
+		 if !app.gameover {
 			app.animation_progress = 0
-			for app.animation_progress < fps / mps {
+			for app.animation_progress < animation_steps {
 				app.animation_progress ++
-				time.sleep_ms(1000 / fps)
+				time.sleep_ms(1000 / animation_steps / mps)
 		}
 		
 	}
