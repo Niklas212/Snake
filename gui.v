@@ -19,13 +19,22 @@ const (
 	food_col = gx.red
 	bgcolor = [gx.rgb(162, 209, 73), gx.rgb(170, 215, 81)]
 	//moves per second
-	mps = 6
-	fps = 60
+	mps = 10
+	fps = 120
 	
 	rounded = 8
 	snake_perc = 0.8
 	snake_perc_to_top = (1 - snake_perc) / 2
 	snake_perc_to_left = 1 - snake_perc_to_top
+
+	text_normal = gx.TextCfg{
+				color: gx.red
+				align: gx.align_left
+			}
+	text_dead = gx.TextCfg{
+				color: gx.black
+				align: gx.align_left
+			}
 )
 
 struct App {
@@ -40,6 +49,7 @@ mut:
 	//fps	int = 60 // only related to animation
 	animation_progress	int
 	grid	[][]int
+	round_a	int = rounded
 }
 
 struct F2 {
@@ -139,20 +149,10 @@ fn draw_grid (app &App) {
 	//text
 	gg:=app.gg
 	if app.gameover {
-		gg.draw_text(4, 4, "Game Over, press Space, your score:$app.score",
-			gx.TextCfg{
-				color: gx.red
-				align: gx.align_left
-			}
-		)
+		gg.draw_text(4, 4, "Game Over, press Space, your score:$app.score", text_normal)
 	}
 	else {
-		gg.draw_text(4, 4, "$app.score", 
-			gx.TextCfg{
-				color: gx.black
-				align: gx.align_left
-			}
-		)
+		gg.draw_text(4, 4, "$app.score", text_dead)
 	}
 	//grid
 	for x in 0..app.snake.field.width {
@@ -172,7 +172,7 @@ fn draw_grid (app &App) {
 		p4:=F2{f32(part.x) + snake_perc_to_left, f32(part.y) + snake_perc_to_left}
 		x, y:= min_max_f(p1, p2, p3, p4)
 
-		draw_rect_by_points(gg, x.mul(app.size) + V2{app.margin_left, margin_top}, y.mul(app.size) + V2{app.margin_left, margin_top}, body_col)
+		draw_rect_by_points(gg, x.mul(app.size) + V2{app.margin_left, margin_top}, y.mul(app.size) + V2{app.margin_left, margin_top}, body_col, app.round_a)
 		last=part
 	}
 
@@ -186,7 +186,7 @@ fn draw_grid (app &App) {
 		mut p3:=F2{end_position.x + snake_perc_to_top, end_position.y + snake_perc_to_top}
 		mut p4:=F2{end_position.x + snake_perc_to_left, end_position.y + snake_perc_to_left}
 		mut x, mut y:= min_max_f(p1, p2, p3, p4)
-		draw_rect_by_points(gg, x.mul(app.size) + V2{app.margin_left, margin_top}, y.mul(app.size) + V2{app.margin_left, margin_top}, body_col)
+		draw_rect_by_points(gg, x.mul(app.size) + V2{app.margin_left, margin_top}, y.mul(app.size) + V2{app.margin_left, margin_top}, body_col, app.round_a)
 
 
 	// between head and 2nd part
@@ -197,7 +197,7 @@ fn draw_grid (app &App) {
 		p3=F2{head_position.x + snake_perc_to_top, head_position.y + snake_perc_to_top}
 		p4=F2{head_position.x + snake_perc_to_left, head_position.y + snake_perc_to_left}
 		x, y= min_max_f(p1, p2, p3, p4)
-		draw_rect_by_points(gg, x.mul(app.size) + V2{app.margin_left, margin_top}, y.mul(app.size) + V2{app.margin_left, margin_top}, body_col)	
+		draw_rect_by_points(gg, x.mul(app.size) + V2{app.margin_left, margin_top}, y.mul(app.size) + V2{app.margin_left, margin_top}, body_col, app.round_a)	
 		
 	//food
 	gg.draw_circle(int(app.snake.field.food.x * app.size + app.size / 2 + app.margin_left), int(app.snake.field.food.y * app.size + margin_top + app.size / 2), app.size / 2, food_col)
@@ -251,12 +251,24 @@ fn (mut app App) game() {
 			app.animation_progress = 0
 			for app.animation_progress < fps / mps {
 				app.animation_progress ++
-				time.sleep_ms(1000 / fps / mps)
+				time.sleep_ms(1000 / fps)
 		}
+		
 	}
 	}
 }
-
+/*
+[unsafe]
+fn animation(gameover bool) int {
+	//static progress:= 0
+	if gameover {
+		return 1
+	}
+	else {
+		return prog0ress
+	}
+}
+*/
 fn handle_size(mut app App) {
 	//size:=gg.screen_size()
 	mut width, mut height := sapp.width(), sapp.height()
@@ -268,9 +280,10 @@ fn handle_size(mut app App) {
 	mh:= (height - margin_top) / grid_height
 	app.size = if mw > mh {mh} else {mw}
 	app.margin_left = (width - app.size * grid_width) / 2
+	app.round_a = rounded * int(app.size > 2 * rounded)
 }
 
-fn draw_rect_by_points (gg &gg.Context, left_top V2, right_bottom V2, color gx.Color) {
-	gg.draw_rounded_rect(left_top.x, left_top.y, (right_bottom.x - left_top.x) / 2, (right_bottom.y - left_top.y) / 2, rounded, color)
+fn draw_rect_by_points (gg &gg.Context, left_top V2, right_bottom V2, color gx.Color, round int) {
+	gg.draw_rounded_rect(left_top.x, left_top.y, (right_bottom.x - left_top.x) / 2, (right_bottom.y - left_top.y) / 2, round, color)
 }
 
