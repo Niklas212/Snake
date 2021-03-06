@@ -20,7 +20,7 @@ const (
 	bgcolor = [gx.rgb(162, 209, 73), gx.rgb(170, 215, 81)]
 	//moves per second
 	mps = 9
-	animation_steps = 20
+	animation_steps = 10
 	
 	rounded = 8
 	snake_perc = 0.8
@@ -48,7 +48,7 @@ mut:
 	gameover bool
 	//fps	int = 60 // only related to animation
 	animation_progress	int
-	grid	[][]int
+	//grid	[][]int
 	round_a	int = rounded
 }
 
@@ -83,7 +83,7 @@ fn (a F2) mul_f(b f32) (F2) {
 
 fn main() {
 	mut app := &App{
-		grid: [][]int{len:grid_width, init:[]int{len:grid_height}}
+		//grid: [][]int{len:grid_width, init:[]int{len:grid_height}}
 		snake: Snake{
 			field: Map{
 				width : grid_width
@@ -247,14 +247,15 @@ fn space_pressed(mut app App){
 fn (mut app App) game() {
 	for !app.gameover {
 		app.snake.move()
+		app.animation_progress = 0
 		 if !app.gameover {
-			app.animation_progress = 0
+			//app.animation_progress = 0
 			for app.animation_progress < animation_steps {
 				app.animation_progress ++
-				time.sleep_ms(1000 / animation_steps / mps)
+				//time.sleep_ms(1000 / animation_steps / mps)
+				time.wait(1_000_000_000 / animation_steps / mps )
 		}
-		
-	}
+		} else {app.snake.force_move()}
 	}
 }
 /*

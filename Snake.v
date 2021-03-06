@@ -101,6 +101,14 @@ pub fn (mut sn Snake) move () {
 	}
 }
 
+fn (mut sn Snake) force_move() {
+	head:= sn.body[0] + sn.orientation
+	for i := sn.body.len - 1; i > 0; i-- {
+			sn.body[i] = sn.body[i - 1]
+		}
+		sn.body[0] = head
+}
+
 fn (a V2) + (b V2) V2 {
 	return V2{a.x + b.x, a.y + b.y}
 }
