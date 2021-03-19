@@ -1,12 +1,10 @@
 module main
 
-//import ui
 import gg
 import gx
 import time
 import os
 import sokol.sapp
-//import math
 
 const (
 	win_width  = 800
@@ -20,8 +18,7 @@ const (
 	bgcolor = [gx.rgb(162, 209, 73), gx.rgb(170, 215, 81)]
 	win_bg_col = gx.rgb(178, 221, 89)
 	//moves per second
-	mps = 9
-	animation_steps = 10
+	mps = 10
 	
 	rounded = 8
 	snake_perc = 0.8
@@ -36,22 +33,24 @@ const (
 				align: gx.align_left
 			}
 
+	data_file = $embed_file("data.txt")
+
 )
 
 struct App {
 mut:
 	score	int
+	highscore int
 	snake	Snake = Snake{}
 	gg 	&gg.Context = 0
 	size	int	= 40
 	total_size V2 = V2{win_width, win_height}
 	margin_left	int
 	margin_top int = margin_top
-	//time	time.StopWatch
+
 	gameover bool
-	//fps	int = 60 // only related to animation
-	animation_progress	int
-	//grid	[][]int
+	last_time i64
+
 	round_a	int = rounded
 }
 
@@ -90,7 +89,6 @@ fn (a F2) mul_f(b f32) (F2) {
 
 fn main() {
 	mut app := &App{
-		//grid: [][]int{len:grid_width, init:[]int{len:grid_height}}
 		snake: Snake{
 			field: Map{
 				width : grid_width
@@ -100,9 +98,7 @@ fn main() {
 			on_dead: on_dead
 			on_grow: on_grow
 			}
-		//time: time.new_stopwatch({})
 		}
-
 
 	mut font_path := os.resource_abs_path(os.join_path('..', 'assets', 'fonts', 'RobotoMono-Regular.ttf'))
 	$if android {
@@ -126,8 +122,7 @@ fn main() {
 		//sample_count: 8
 	})
 
-	go app.game()
-	//go app.animate()
+	//go app.game()
 	app.gg.run()
 }
 
@@ -141,9 +136,9 @@ fn click (x f32, y f32, mut app App) {
 	}
 	else {
 		if app.snake.last_orientation.x != 0 {
-			app.snake.set_orientation(V2{0, int(app.snake.body[0].y * app.size + app.margin_top + app.size < y )})
+			app.snake.set_orientation(V2{0, if app.snake.body[0].y * app.size + app.margin_top + app.size < y {1} else {-1}})
 		} else {
-			app.snake.set_orientation(V2{ int(app.snake.body[0].x * app.size + app.margin_left + app.size < x ), 0})
+			app.snake.set_orientation(V2{ if app.snake.body[0].x * app.size + app.margin_left + app.size < x {1} else {-1}, 0})
 		}
 	}
 }
@@ -158,19 +153,25 @@ fn event(e &gg.Event, mut app App) {
 }
 
 fn frame(mut app App) {
-	//app.time.restart()
-	
-	//println(1_000_000_000 / app.time.elapsed()) /* shows fps */
 	app.gg.begin()
-	draw_grid(app)
+	draw_grid(mut app)
 	app.gg.end()
 }
 
-fn draw_grid (app &App) {
+fn draw_grid (mut app App) {
 
 		gg:=app.gg
+		mut animation_progress := f32(0.0)
+		if !app.gameover {
+			a_time := time.ticks()
+			if a_time - app.last_time > 1_000 / mps {
+			app.snake.move()
+			app.last_time = a_time
+			}
+			animation_progress = f32(a_time - app.last_time) / 1_000 * mps
+	}
+	else {animation_progress = 1.0}
 
-		animation_progress:= f32(app.animation_progress / f32(animation_steps) )
 		head_position:=F2{f32(app.snake.last_orientation.x) * animation_progress + app.snake.body[1].x, f32(app.snake.last_orientation.y) * animation_progress + app.snake.body[1].y}
 
 	//grid
@@ -209,7 +210,6 @@ fn draw_grid (app &App) {
 
 
 	// between head and 2nd part
-		
 		snd := app.snake.body[1]
 		p1=F2{f32(snd.x) + snake_perc_to_top, f32(snd.y) + snake_perc_to_top}
 		p2=F2{f32(snd.x) + snake_perc_to_left, f32(snd.y) + snake_perc_to_left}
@@ -226,7 +226,6 @@ fn draw_grid (app &App) {
 
 //text && gameover-screen
 	if app.gameover {
-		//gg.draw_text(4, 4, "Game Over, press Space, your score:$app.score", text_normal)
 		gg.draw_rect(0, 0, app.total_size.x, app.total_size.y, gx.rgba(0, 0, 0, 150))
 		size:=V2{app.size * ui_width, app.size * ui_height}
 		position:=V2{(app.total_size.x - size.x) / 2, (app.total_size.y - size.y - margin_top) / 2 + margin_top}
@@ -239,6 +238,11 @@ fn draw_grid (app &App) {
 			vertical_align: .middle
 		} )
 		gg.draw_text(position.x + app.size, position.y + 2 * app.size, "your score: $app.score", gx.TextCfg{
+			color: gx.white
+			size: app.size * 8 / 10
+			align: .left
+		} )
+		gg.draw_text(position.x + app.size, position.y + 3 * app.size, "your highscore: $app.highscore", gx.TextCfg{
 			color: gx.white
 			size: app.size * 8 / 10
 			align: .left
@@ -258,6 +262,7 @@ fn draw_grid (app &App) {
 }
 
 fn on_dead(mut app App) {
+	if app.score > app.highscore {app.highscore = app.score}
 	app.gameover = true
 }
 
@@ -289,53 +294,11 @@ fn space_pressed(mut app App){
 		app.score = 0
 		app.gameover = false
 		app.snake.orientation = V2{x: 1, y:0}
-		app.animation_progress = 0
-		go app.game()
+		//go app.game()
 	}
 }
 
-fn (mut app App) game() {
-	/*
-	time_:= time.now().microsecond
-
-	app.snake.move()
-		app.animation_progress = 0
-		 if !app.gameover {
-			for app.animation_progress < animation_steps {
-				app.animation_progress ++
-				time.wait(1_000_000_000 / animation_steps / mps )
-		}
-		} else {app.snake.force_move()}
-
-	mut time_delay := (time.now().microsecond - time_ -  (1_000_000 / mps)) / animation_steps
-	if time_delay < 0 {time_delay = 0}
-	app.score = time_delay
-*/
-	for !app.gameover {
-		app.snake.move()
-		app.animation_progress = 0
-		 if !app.gameover {
-			for app.animation_progress < animation_steps {
-				app.animation_progress ++
-				time.wait(1_000_000_000 / animation_steps / mps)
-		}
-		} else {app.snake.force_move()}
-	}
-}
-/*
-[unsafe]
-fn animation(gameover bool) int {
-	//static progress:= 0
-	if gameover {
-		return 1
-	}
-	else {
-		return prog0ress
-	}
-}
-*/
 fn handle_size(mut app App) {
-	//size:=gg.screen_size()
 	mut width, mut height := sapp.width(), sapp.height()
 	if sapp.dpi_scale() != 0.0 && sapp.dpi_scale() != 1.0 {
 		width = int(f32(width) / sapp.dpi_scale())
