@@ -18,13 +18,10 @@ const (
 	bgcolor = [gx.rgb(162, 209, 73), gx.rgb(170, 215, 81)]
 	win_bg_col = gx.rgb(178, 221, 89)
 	//moves per second
-<<<<<<< HEAD
+
 	mps = 9
-	animation_steps = 10
-=======
-	mps = 10
->>>>>>> 8d6fecf9aab64772a3ae98cc36838c87ebb86f72
-	
+
+
 	rounded = 8
 	snake_perc = 0.8
 	snake_perc_to_top = (1 - snake_perc) / 2
@@ -38,11 +35,6 @@ const (
 				align: gx.align_left
 			}
 
-<<<<<<< HEAD
-=======
-	data_file = $embed_file("data.txt")
-
->>>>>>> 8d6fecf9aab64772a3ae98cc36838c87ebb86f72
 )
 
 struct App {
@@ -55,18 +47,15 @@ mut:
 	total_size V2 = V2{win_width, win_height}
 	margin_left	int
 	margin_top int = margin_top
-<<<<<<< HEAD
+
 	//time	time.StopWatch
 	gameover bool
 	//fps	int = 60 // only related to animation
 	animation_progress	int
-	//grid	[][]int
-=======
 
-	gameover bool
 	last_time i64
 
->>>>>>> 8d6fecf9aab64772a3ae98cc36838c87ebb86f72
+
 	round_a	int = rounded
 }
 
@@ -92,7 +81,11 @@ fn (a F2) + (b F2) F2 {
 }
 
 fn min_max_f (a F2, b F2, c F2, d F2) (F2, F2) {
-	return F2{ int(a.x<=b.x && a.x<=c.x && a.x<= d.x) * a.x + int(b.x<a.x && b.x<=c.x && b.x<= d.x) * b.x + int(c.x<b.x && c.x<a.x && c.x<= d.x) * c.x + int(d.x<b.x && d.x<c.x && d.x< a.x) * d.x, int(a.y<=b.y && a.y<=c.y && a.y<= d.y) * a.y + int(b.y<a.y && b.y<=c.y && b.y<= d.y) * b.y + int(c.y<b.y && c.y<a.y && c.y<= d.y) * c.y + int(d.y<b.y && d.y<c.y && d.y< a.y) * d.y}, F2{ int(a.x>=b.x && a.x>=c.x && a.x>= d.x) * a.x + int(b.x>a.x && b.x>=c.x && b.x>= d.x) * b.x + int(c.x>b.x && c.x>a.x && c.x>= d.x) * c.x + int(d.x>b.x && d.x>c.x && d.x> a.x) * d.x, int(a.y>=b.y && a.y>=c.y && a.y>= d.y) * a.y + int(b.y>a.y && b.y>=c.y && b.y>= d.y) * b.y + int(c.y>b.y && c.y>a.y && c.y>= d.y) * c.y + int(d.y>b.y && d.y>c.y && d.y> a.y) * d.y }
+	return F2{ int(a.x<=b.x && a.x<=c.x && a.x<= d.x) * a.x + int(b.x<a.x && b.x<=c.x && b.x<= d.x) * b.x + int(c.x<b.x && c.x<a.x && c.x<= d.x) * c.x +
+int(d.x<b.x && d.x<c.x && d.x< a.x) * d.x, int(a.y<=b.y && a.y<=c.y && a.y<= d.y) * a.y + int(b.y<a.y && b.y<=c.y && b.y<= d.y) * b.y + int(c.y<b.y && c.y<a.y
+&& c.y<= d.y) * c.y + int(d.y<b.y && d.y<c.y && d.y< a.y) * d.y}, F2{ int(a.x>=b.x && a.x>=c.x && a.x>= d.x) * a.x + int(b.x>a.x && b.x>=c.x && b.x>= d.x) * b.x
++ int(c.x>b.x && c.x>a.x && c.x>= d.x) * c.x + int(d.x>b.x && d.x>c.x && d.x> a.x) * d.x, int(a.y>=b.y && a.y>=c.y && a.y>= d.y) * a.y + int(b.y>a.y && b.y>=c.y
+&& b.y>= d.y) * b.y + int(c.y>b.y && c.y>a.y && c.y>= d.y) * c.y + int(d.y>b.y && d.y>c.y && d.y> a.y) * d.y }
 }
 
 fn (a F2) mul(b int) (V2) {
@@ -105,10 +98,7 @@ fn (a F2) mul_f(b f32) (F2) {
 
 fn main() {
 	mut app := &App{
-<<<<<<< HEAD
-		//grid: [][]int{len:grid_width, init:[]int{len:grid_height}}
-=======
->>>>>>> 8d6fecf9aab64772a3ae98cc36838c87ebb86f72
+
 		snake: Snake{
 			field: Map{
 				width : grid_width
@@ -124,7 +114,7 @@ fn main() {
 	$if android {
 		font_path = 'fonts/RobotoMono-Regular.ttf'
 	}
-	
+
 	app.snake.data = app
 	app.gg = gg.new_context({
 		width: win_width
@@ -142,27 +132,22 @@ fn main() {
 		//sample_count: 8
 	})
 
-	//go app.game()
 	app.gg.run()
 }
 
-<<<<<<< HEAD
+
 fn click (x f32, y f32, mouse_button gg.MouseButton,  mut app App) {
-=======
-fn click (x f32, y f32, mut app App) {
->>>>>>> 8d6fecf9aab64772a3ae98cc36838c87ebb86f72
-	position:=F2{(app.total_size.x - app.size * ui_width) / 2 + (f32(ui_width) / 2 - 2) * app.size , (app.total_size.y - app.size * ui_height - margin_top) / 2 + margin_top + (f32(ui_height) - 1.5) * app.size}
-	
+
+	position:=F2{(app.total_size.x - app.size * ui_width) / 2 + (f32(ui_width) / 2 - 2) * app.size , (app.total_size.y - app.size * ui_height - margin_top) / 2
++ margin_top + (f32(ui_height) - 1.5) * app.size}
+
 	if app.gameover {
 		if  x > position.x && x < (position.x + 4 * app.size) && y > position.y && y < (position.y + app.size)  {
 			space_pressed(mut app)
 		}
 	}
 	else {
-<<<<<<< HEAD
-	//println("x:$x, y:$y, sy:${int(app.snake.body[0].y * app.size + app.margin_top + app.size)} ")
-=======
->>>>>>> 8d6fecf9aab64772a3ae98cc36838c87ebb86f72
+
 		if app.snake.last_orientation.x != 0 {
 			app.snake.set_orientation(V2{0, if app.snake.body[0].y * app.size + app.margin_top + app.size < y {1} else {-1}})
 		} else {
@@ -186,29 +171,24 @@ fn frame(mut app App) {
 	app.gg.end()
 }
 
-<<<<<<< HEAD
-fn draw_grid (app &App) {
 
-		gg:=app.gg
-
-		animation_progress:= f32(app.animation_progress / f32(animation_steps) )
-=======
 fn draw_grid (mut app App) {
 
-		gg:=app.gg
-		mut animation_progress := f32(0.0)
-		if !app.gameover {
-			a_time := time.ticks()
-			if a_time - app.last_time > 1_000 / mps {
-			app.snake.move()
-			app.last_time = a_time
-			}
-			animation_progress = f32(a_time - app.last_time) / 1_000 * mps
-	}
+    gg:=app.gg
+    mut animation_progress := f32(0.0)
+    if !app.gameover {
+        a_time := time.ticks()
+        if a_time - app.last_time > 1_000 / mps {
+            app.snake.move()
+            app.last_time = a_time
+        }
+        animation_progress = f32(a_time - app.last_time) / 1_000 * mps
+    }
 	else {animation_progress = 1.0}
 
->>>>>>> 8d6fecf9aab64772a3ae98cc36838c87ebb86f72
-		head_position:=F2{f32(app.snake.last_orientation.x) * animation_progress + app.snake.body[1].x, f32(app.snake.last_orientation.y) * animation_progress + app.snake.body[1].y}
+
+		head_position:=F2{f32(app.snake.last_orientation.x) * animation_progress + app.snake.body[1].x, f32(app.snake.last_orientation.y) * animation_progress +
+app.snake.body[1].y}
 
 	//grid
 	for x in 0..app.snake.field.width {
@@ -216,8 +196,8 @@ fn draw_grid (mut app App) {
 			gg.draw_rect(x * app.size + app.margin_left, y * app.size + app.margin_top, app.size, app.size, bgcolor[(x + y) % 2])
 		}
 	}
-	
-	
+
+
 	//body
 	mut last:=app.snake.body[1]
 	for part in app.snake.body[2..app.snake.body.len] {
@@ -228,7 +208,8 @@ fn draw_grid (mut app App) {
 		p4:=F2{f32(part.x) + snake_perc_to_left, f32(part.y) + snake_perc_to_left}
 		x, y:= min_max_f(p1, p2, p3, p4)
 
-		draw_rect_by_points(gg, x.mul(app.size) + V2{app.margin_left, app.margin_top}, y.mul(app.size) + V2{app.margin_left, app.margin_top}, body_col, app.round_a)
+		draw_rect_by_points(gg, x.mul(app.size) + V2{app.margin_left, app.margin_top}, y.mul(app.size) + V2{app.margin_left, app.margin_top}, body_col,
+app.round_a)
 		last=part
 	}
 
@@ -242,7 +223,8 @@ fn draw_grid (mut app App) {
 		mut p3:=F2{end_position.x + snake_perc_to_top, end_position.y + snake_perc_to_top}
 		mut p4:=F2{end_position.x + snake_perc_to_left, end_position.y + snake_perc_to_left}
 		mut x, mut y:= min_max_f(p1, p2, p3, p4)
-		draw_rect_by_points(gg, x.mul(app.size) + V2{app.margin_left, app.margin_top}, y.mul(app.size) + V2{app.margin_left, app.margin_top}, body_col, app.round_a)
+		draw_rect_by_points(gg, x.mul(app.size) + V2{app.margin_left, app.margin_top}, y.mul(app.size) + V2{app.margin_left, app.margin_top}, body_col,
+app.round_a)
 
 
 	// between head and 2nd part
@@ -252,29 +234,26 @@ fn draw_grid (mut app App) {
 		p3=F2{head_position.x + snake_perc_to_top, head_position.y + snake_perc_to_top}
 		p4=F2{head_position.x + snake_perc_to_left, head_position.y + snake_perc_to_left}
 		x, y= min_max_f(p1, p2, p3, p4)
-		draw_rect_by_points(gg, x.mul(app.size) + V2{app.margin_left, app.margin_top}, y.mul(app.size) + V2{app.margin_left, /**/app.margin_top}, body_col, app.round_a)	
-		
+		draw_rect_by_points(gg, x.mul(app.size) + V2{app.margin_left, app.margin_top}, y.mul(app.size) + V2{app.margin_left, /**/app.margin_top}, body_col,
+app.round_a)
+
 	//food
-	gg.draw_circle(int(app.snake.field.food.x * app.size + app.size / 2 + app.margin_left), int(app.snake.field.food.y * app.size + /**/app.margin_top + app.size / 2), app.size / 2, food_col)
+	gg.draw_circle(int(app.snake.field.food.x * app.size + app.size / 2 + app.margin_left), int(app.snake.field.food.y * app.size + /**/app.margin_top +
+app.size / 2), app.size / 2, food_col)
 
 	//head
 	gg.draw_rect( head_position.x * f32(app.size) + f32(app.margin_left), head_position.y * f32(app.size) + f32(app.margin_top), app.size, app.size, head_col)
 
 //text && gameover-screen
 	if app.gameover {
-<<<<<<< HEAD
-		//gg.draw_text(4, 4, "Game Over, press Space, your score:$app.score", text_normal)
-=======
->>>>>>> 8d6fecf9aab64772a3ae98cc36838c87ebb86f72
+
 		gg.draw_rect(0, 0, app.total_size.x, app.total_size.y, gx.rgba(0, 0, 0, 150))
 		size:=V2{app.size * ui_width, app.size * ui_height}
 		position:=V2{(app.total_size.x - size.x) / 2, (app.total_size.y - size.y - margin_top) / 2 + margin_top}
 		center:= V2{position.x + size.x / 2, position.y + size.y / 2}
-<<<<<<< HEAD
+
 		gg.draw_rounded_rect(position.x, position.y, size.x, size.y, app.round_a, gx.rgba(0, 0, 0, 200))
-=======
-		gg.draw_rounded_rect(position.x, position.y, size.x / 2, size.y / 2, app.round_a, gx.rgba(0, 0, 0, 200))
->>>>>>> 8d6fecf9aab64772a3ae98cc36838c87ebb86f72
+
 		gg.draw_text(center.x, position.y + app.size, "Game Over", gx.TextCfg{
 			color: gx.red
 			size: app.size
@@ -286,16 +265,10 @@ fn draw_grid (mut app App) {
 			size: app.size * 8 / 10
 			align: .left
 		} )
-<<<<<<< HEAD
-		gg.draw_empty_rounded_rect(center.x - 2 * app.size, int(f32(position.y) + (f32(ui_height) - 1.5) * app.size), 4 * app.size, app.size, app.round_a, gx.white)
-=======
-		gg.draw_text(position.x + app.size, position.y + 3 * app.size, "your highscore: $app.highscore", gx.TextCfg{
-			color: gx.white
-			size: app.size * 8 / 10
-			align: .left
-		} )
-		gg.draw_empty_rounded_rect(center.x - 2 * app.size, int(f32(position.y) + (f32(ui_height) - 1.5) * app.size), 2 * app.size, app.size / 2, app.round_a, gx.white)
->>>>>>> 8d6fecf9aab64772a3ae98cc36838c87ebb86f72
+
+		gg.draw_empty_rounded_rect(center.x - 2 * app.size, int(f32(position.y) + (f32(ui_height) - 1.5) * app.size), 4 * app.size, app.size, app.round_a,
+gx.white)
+
 		gg.draw_text(center.x, position.y + (ui_height - 1) * app.size , "restart", gx.TextCfg{
 			color: gx.white
 			size: app.size * 8 / 10
@@ -319,7 +292,7 @@ fn on_grow(mut app App) {
 }
 
 fn key_press(e gg.KeyCode, m gg.Modifier, mut app App) {
-	
+
 		if int(e) == 32 {
 			space_pressed(mut app)
 		} else {
@@ -342,51 +315,10 @@ fn space_pressed(mut app App){
 		app.score = 0
 		app.gameover = false
 		app.snake.orientation = V2{x: 1, y:0}
-		//go app.game()
 	}
 }
 
-<<<<<<< HEAD
-fn (mut app App) game() {
-	/*
-	time_:= time.now().microsecond
-	app.snake.move()
-		app.animation_progress = 0
-		 if !app.gameover {
-			for app.animation_progress < animation_steps {
-				app.animation_progress ++
-				time.wait(1_000_000_000 / animation_steps / mps )
-		}
-		} else {app.snake.force_move()}
-	mut time_delay := (time.now().microsecond - time_ -  (1_000_000 / mps)) / animation_steps
-	if time_delay < 0 {time_delay = 0}
-	app.score = time_delay
-*/
-	for !app.gameover {
-		app.snake.move()
-		app.animation_progress = 0
-		 if !app.gameover {
-			for app.animation_progress < animation_steps {
-				app.animation_progress ++
-				time.wait(1_000_000_000 / animation_steps / mps)
-		}
-		} else {app.snake.force_move()}
-	}
-}
-/*
-[unsafe]
-fn animation(gameover bool) int {
-	//static progress:= 0
-	if gameover {
-		return 1
-	}
-	else {
-		return prog0ress
-	}
-}
-*/
-=======
->>>>>>> 8d6fecf9aab64772a3ae98cc36838c87ebb86f72
+
 fn handle_size(mut app App) {
 	mut width, mut height := sapp.width(), sapp.height()
 	if sapp.dpi_scale() != 0.0 && sapp.dpi_scale() != 1.0 {
